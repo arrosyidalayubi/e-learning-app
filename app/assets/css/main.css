@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* Jika kamu ingin menambahkan custom theme/warna di v4, lakukan di sini */
+@theme {
+  --color-primary-500: #2563eb;
+  --color-primary-600: #1d4ed8;
+}
+
+body {
+  @apply bg-gray-50 text-gray-800 antialiased;
+}
