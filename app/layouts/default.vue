@@ -12,7 +12,7 @@
         <NuxtLink 
           to="/" 
           class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
-          :class="route.path === '/' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'"
+          :class="route.path === '/' || route.path.startsWith('/kursus') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'"
         >
           Dashboard
         </NuxtLink>

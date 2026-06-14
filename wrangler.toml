@@ -1,0 +1,9 @@
+name = "e-learning-app"
+compatibility_date = "2026-06-13"
+pages_build_output_dir = "dist"
+
+# Konfigurasi Database D1
+[[d1_databases]]
+binding = "DB" # Ini nama variabel yang akan dipanggil di dalam API Nuxt
+database_name = "elearning_db"
+database_id = "d636bac0-e4f7-476f-9737-03c4779b85ae" # Akan kita isi setelah database dibuat
