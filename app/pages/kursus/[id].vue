@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-7xl mx-auto">
+  <div class="max-w-7xl mx-auto pb-12">
     <div v-if="pending" class="flex justify-center items-center min-h-[50vh]">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
     </div>
@@ -35,35 +35,48 @@
         <div 
           v-for="modul in course.daftarPertemuan" 
           :key="modul.id"
-          class="flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-300"
+          :id="`pertemuan-${modul.pertemuan}`"
+          class="flex flex-col rounded-2xl overflow-hidden transition-all duration-300 border bg-white"
+          :class="lastActiveMeeting === modul.pertemuan 
+            ? 'border-blue-500 shadow-xl scale-[1.02] ring-4 ring-blue-50' 
+            : 'border-gray-200 hover:shadow-lg hover:border-blue-300'"
         >
-          <div class="p-5 border-b border-gray-100 flex justify-between items-start">
+          <div class="p-5 border-b flex justify-between items-start" :class="lastActiveMeeting === modul.pertemuan ? 'border-blue-500 bg-blue-50' : 'border-gray-100'">
             <div>
-              <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-2">
+              <span 
+                class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold mb-2"
+                :class="lastActiveMeeting === modul.pertemuan ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'"
+              >
                 Pertemuan {{ modul.pertemuan }}
               </span>
             </div>
+            
             <div v-if="modul.status === 'selesai'" class="text-green-500">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <div v-else-if="modul.status === 'terkunci'" class="text-gray-300">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <div v-else :class="lastActiveMeeting === modul.pertemuan ? 'text-blue-600' : 'text-gray-400'">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             </div>
           </div>
 
-          <div class="p-5 flex-1">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+          <div class="p-5 flex-1 transition-colors" :class="lastActiveMeeting === modul.pertemuan ? 'bg-blue-600 text-white' : 'text-gray-900'">
+            <h3 class="text-lg font-semibold mb-2 line-clamp-2">
               {{ modul.topik }}
             </h3>
+            <div v-if="lastActiveMeeting === modul.pertemuan" class="text-sm text-blue-200 mt-2 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Terakhir diakses
+            </div>
           </div>
 
-          <div class="p-4 bg-gray-50/50 border-t border-gray-100">
+          <div class="p-4 border-t transition-colors" :class="lastActiveMeeting === modul.pertemuan ? 'bg-blue-700 border-blue-500' : 'bg-gray-50/50 border-gray-100'">
             <NuxtLink 
-              :to="`/pertemuan/${modul.pertemuan}`"
-              class="block w-full text-center py-2.5 px-4 rounded-xl text-sm font-medium transition-colors"
-              :class="modul.status === 'terkunci' ? 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none' : 'bg-blue-600 hover:bg-blue-800 text-white shadow-sm'"
+              :to="`/kursus/${courseId}/pertemuan/${modul.pertemuan}`"
+              @click="setLastActive(modul.pertemuan)"
+              class="block w-full text-center py-2.5 px-4 rounded-xl text-sm font-bold transition-colors shadow-sm"
+              :class="lastActiveMeeting === modul.pertemuan ? 'bg-white text-blue-700 hover:bg-gray-100' : 'bg-blue-600 hover:bg-blue-700 text-white'"
             >
-              {{ modul.status === 'terkunci' ? 'Belum Tersedia' : 'Buka Pertemuan' }}
+              {{ lastActiveMeeting === modul.pertemuan ? 'Lanjutkan Belajar' : 'Buka Pertemuan' }}
             </NuxtLink>
           </div>
         </div>
@@ -76,9 +89,31 @@
 const route = useRoute()
 const courseId = route.params.id
 
-// Memanggil API dinamis kita
+// Fetch Data API
 const { data: response, pending, error } = await useFetch(`/api/kursus/${courseId}`)
-
-// Mengekstrak data agar mudah digunakan di template
 const course = computed(() => response.value?.data)
+
+// State Persistence menggunakan useCookie (Disimpan di browser user)
+// Nama cookie dibuat dinamis per kursus, misal: last_active_02SIFP010
+const lastActiveCookie = useCookie(`last_active_${courseId}`, { maxAge: 60 * 60 * 24 * 7 }) // Ingat selama 7 hari
+const lastActiveMeeting = ref(lastActiveCookie.value || null)
+
+// Fungsi untuk menyimpan pertemuan terakhir yang diklik
+const setLastActive = (pertemuanId) => {
+  lastActiveMeeting.value = pertemuanId
+  lastActiveCookie.value = pertemuanId
+}
+
+// Auto-Scroll Feature: Menggulir layar otomatis jika ada pertemuan yang aktif
+onMounted(() => {
+  if (lastActiveMeeting.value) {
+    // Memberikan sedikit jeda agar DOM selesai di-render
+    setTimeout(() => {
+      const activeElement = document.getElementById(`pertemuan-${lastActiveMeeting.value}`)
+      if (activeElement) {
+        activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 300)
+  }
+})
 </script>

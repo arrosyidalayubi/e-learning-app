@@ -25,6 +25,8 @@ export default defineEventHandler(async (event) => {
       data: results
     };
   } catch (error) {
-    throw createError({ statusCode: 500, statusMessage: error.message });
+    // Memberitahu TypeScript bahwa error ini memiliki properti 'message'
+    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan internal pada server';
+    throw createError({ statusCode: 500, statusMessage: errorMessage });
   }
 });

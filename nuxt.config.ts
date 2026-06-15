@@ -14,9 +14,18 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
+    build: {
+      rollupOptions: {
+        output: {
+          // Memaksa penamaan file menjadi lebih panjang: chunk-[hash].js
+          chunkFileNames: '_nuxt/chunk-[hash].js',
+          entryFileNames: '_nuxt/entry-[hash].js',
+        }
+      }
+    }
   },
 
-  // Konfigurasi ini sangat optimal untuk deployment Cloudflare Pages nantinya
+  sourcemap: false,
   nitro: {
     preset: 'cloudflare-pages'
   }
