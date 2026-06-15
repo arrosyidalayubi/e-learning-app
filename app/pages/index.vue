@@ -17,9 +17,9 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
       
       <NuxtLink 
-        v-for="matkul in daftarMataKuliah" 
+        v-for="matkul in daftarKursus" 
         :key="matkul.id"
-        :to="`/kursus/${matkul.kode}`"
+        :to="`/kursus/${matkul.kode_kursus}`"
         class="group flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 relative h-full"
       >
         <div class="h-1.5 w-full bg-blue-600"></div>
@@ -30,7 +30,7 @@
               {{ matkul.nama }}
             </h2>
             <div class="text-xs text-gray-500 mt-1.5 font-medium">
-              [{{ matkul.sks }}] {{ matkul.nama }} # {{ matkul.kode }} ({{ matkul.hari }}) [P-1]
+              [{{ matkul.sks }}] {{ matkul.nama }} # {{ matkul.kode_kursus }} ({{ matkul.hari }}) [P-1]
             </div>
           </div>
 
@@ -45,7 +45,7 @@
             <div class="flex gap-6">
               <div>
                 <p class="text-xs text-gray-400">Kode Kelas</p>
-                <p class="text-sm font-semibold text-gray-800">{{ matkul.kode }}</p>
+                <p class="text-sm font-semibold text-gray-800">{{ matkul.kode_kursus }}</p>
               </div>
               <div>
                 <p class="text-xs text-gray-400">SKS</p>
@@ -60,20 +60,19 @@
         </div>
       </NuxtLink>
 
+      <div v-if="error" class="bg-red-100 text-red-700 p-4 rounded-lg">
+  {{ error }}
+</div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-// Simulasi Data Mata Kuliah
-const daftarMataKuliah = ref([
-  { id: 1, nama: 'SISTEM OPERASI', kode: '02SIFP010', sks: 3, hari: 'Selasa', dosen: 'SALMAN FARIZY S.Kom., M.Kom.' },
-  { id: 2, nama: 'PENDIDIKAN PANCASILA', kode: '02SIFP011', sks: 2, hari: 'Senin', dosen: 'Dr. LILI NURLAILI M.Ed.' },
-  { id: 3, nama: 'BAHASA INDONESIA', kode: '02SIFP012', sks: 2, hari: 'Jumat', dosen: 'IRAWAN WISNU KUNCORO S.Pd., M.Pd.' },
-  { id: 4, nama: 'INTERMEDIATE ACADEMIC ENGLISH', kode: '02SIFP013', sks: 2, hari: 'Selasa', dosen: 'DIYAH IIS ANDRIANI SS, M.Pd' },
-  { id: 5, nama: 'ALGORITMA DAN STRUKTUR DATA', kode: '02SIFP014', sks: 3, hari: 'Jumat', dosen: 'MEGA PERMATA SAPANI S.Kom., M.Kom.' },
-  { id: 6, nama: 'SISTEM INFORMASI MANAJEMEN', kode: '02SIFP015', sks: 3, hari: 'Selasa', dosen: 'DYAH AYU NURMUMPUNI S.Kom., M.Kom.' },
-  { id: 7, nama: 'PERANCANGAN BASIS DATA II', kode: '02SIFP016', sks: 2, hari: 'Selasa', dosen: 'YUDISTI PRAYIGO PERMANA S.Kom., M.Pd.' },
-  { id: 8, nama: 'PEMROGRAMAN WEB 2', kode: '02SIFP017', sks: 3, hari: 'Senin', dosen: 'BUDIANTO S.Kom., M.Kom.' }
-])
+// Mengambil data dari API serverless Nitro menggunakan useFetch
+// useFetch adalah fungsi bawaan Nuxt yang dioptimalkan untuk SSR dan reaktivitas
+const { data: response, pending, error } = await useFetch('/api/kursus')
+
+// Mengekstrak array data dari struktur JSON balikan API
+const daftarKursus = computed(() => response.value?.data || [])
 </script>
