@@ -60,23 +60,61 @@
         </button>
       </div>
 
-      <div class="bg-white rounded-2xl border transition-all duration-300 flex items-center p-4 sm:p-6 gap-4" :class="isMateriDone ? 'border-green-200 shadow-sm' : 'border-gray-200 shadow-sm'">
-        <div class="p-3 rounded-xl" :class="isMateriDone ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-lg font-semibold text-gray-900">Materi Pembelajaran</h3>
-          <p class="text-sm text-gray-500 mt-1">Modul PDF & Tautan Video Referensi.</p>
-        </div>
-        <button 
-          @click="isMateriDone = true"
-          :disabled="isMateriDone"
-          class="px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
-          :class="isMateriDone ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-        >
-          {{ isMateriDone ? 'Sudah Dibaca ✅' : 'Lihat Materi' }}
-        </button>
-      </div>
+      <div class="bg-white rounded-2xl border transition-all duration-300 p-4 sm:p-6" :class="isMateriDone && authUser?.role === 'mahasiswa' ? 'border-green-200 shadow-sm' : 'border-gray-200 shadow-sm'">
+     <div class="flex items-center gap-4 mb-4">
+       <div class="p-3 rounded-xl" :class="isMateriDone && authUser?.role === 'mahasiswa' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'">
+         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+       </div>
+       <div class="flex-1">
+         <div class="flex items-center gap-2">
+           <h3 class="text-lg font-semibold text-gray-900">Materi Pembelajaran</h3>
+           <span v-if="isMateriDone && authUser?.role === 'mahasiswa'" class="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">Selesai</span>
+         </div>
+         <p class="text-sm text-gray-500 mt-1">Unduh modul PDF untuk dipelajari.</p>
+       </div>
+
+       <div v-if="authUser?.role === 'dosen' || authUser?.role === 'admin'">
+         <input type="file" id="uploadMateri" class="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx" @change="handleFileUpload">
+         <label for="uploadMateri" class="cursor-pointer px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors border border-blue-200">
+           <svg v-if="isUploading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+           <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+           {{ isUploading ? 'Mengunggah...' : 'Upload Materi' }}
+         </label>
+       </div>
+     </div>
+
+     <div v-if="daftarMateri.length > 0" class="space-y-2 pl-0 sm:pl-16">
+       <div v-for="materi in daftarMateri" :key="materi.id" class="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50 hover:bg-white hover:border-blue-200 transition-colors">
+         <div class="flex items-center gap-3 overflow-hidden">
+           <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF" class="w-6 h-6 shrink-0">
+           <div class="truncate">
+             <p class="text-sm font-bold text-gray-800 truncate">{{ materi.nama_file }}</p>
+             <p class="text-xs text-gray-500">{{ materi.ukuran_file }}</p>
+           </div>
+         </div>
+
+         <a 
+              v-if="authUser?.role === 'mahasiswa'"
+              :href="`/api/materi/download/${materi.url_file}`"
+              target="_blank"
+              @click="downloadMateri(materi)"
+              class="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm text-center"
+            >
+              Unduh
+            </a>
+         <button 
+           v-if="authUser?.role === 'dosen' || authUser?.role === 'admin'"
+           class="shrink-0 p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Hapus File"
+         >
+           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-16v1a3 3 0 006 0V4m-6 0h6"/></svg>
+         </button>
+       </div>
+     </div>
+
+     <div v-else class="pl-0 sm:pl-16 text-sm text-gray-400 italic">
+       Belum ada materi yang diunggah oleh dosen.
+     </div>
+   </div>
 
       <div class="bg-white rounded-2xl border transition-all duration-300 flex items-center p-4 sm:p-6 gap-4" :class="isForumDone ? 'border-green-200 shadow-sm' : 'border-gray-200 shadow-sm'">
         <div class="p-3 rounded-xl" :class="isForumDone ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'">
@@ -191,4 +229,47 @@ const isForumDone = computed(() => replyProgress.value >= 2)
 const isAllCompleted = computed(() => {
   return isPretestDone.value && isMateriDone.value && isForumDone.value && isPosttestDone.value && isKuisionerDone.value
 })
+
+// Ambil data user yang sedang login
+const authUser = useCookie('auth_user')
+
+// Tarik data materi dari API
+const { data: materiResponse, refresh: refreshMateri } = await useFetch(`/api/materi/${route.params.meeting_id}`)
+const daftarMateri = computed(() => materiResponse.value?.data || [])
+
+// Logika Upload Dosen
+const isUploading = ref(false)
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  isUploading.value = true
+  
+  // Bungkus file asli ke dalam FormData protocol
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    // Tembak API dengan payload FormData asli
+    await $fetch(`/api/materi/${route.params.meeting_id}`, {
+      method: 'POST',
+      body: formData
+    })
+    
+    await refreshMateri() // Muat ulang list tabel materi
+    alert('File PDF asli berhasil diunggah ke Cloudflare R2!')
+  } catch (error) {
+    alert('Gagal mengunggah file fisik ke server R2.')
+  } finally {
+    isUploading.value = false
+    event.target.value = '' // Reset input file
+  }
+}
+// Logika Download Mahasiswa
+const downloadMateri = (materi) => {
+  // Trigger status selesai
+  isMateriDone.value = true
+  // Simulasi unduh
+  alert(`Mendownload: ${materi.nama_file}\nProgres materi ditandai selesai!`)
+}
 </script>

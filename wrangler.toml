@@ -7,3 +7,7 @@ pages_build_output_dir = "dist"
 binding = "DB" # Ini nama variabel yang akan dipanggil di dalam API Nuxt
 database_name = "elearning_db"
 database_id = "d636bac0-e4f7-476f-9737-03c4779b85ae" # Akan kita isi setelah database dibuat
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "materi-pdf"
