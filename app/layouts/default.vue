@@ -33,6 +33,14 @@
           Transkrip Nilai
         </NuxtLink>
 
+        <NuxtLink 
+          to="/pengaturan" 
+          class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+          :class="route.path.startsWith('/pengaturan') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-100'"
+        >
+          Keamanan Akun
+        </NuxtLink>
+
         <div v-if="authUser?.role === 'admin'" class="pt-4 mt-4 border-t border-gray-100">
           <p class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Menu Kontrol</p>
           <NuxtLink 
