@@ -20,7 +20,6 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Kata Sandi</label>
             <input v-model="form.password" type="password" required class="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-            <p class="mt-1 text-xs text-gray-400">Default password: 123456</p>
           </div>
         </div>
 
