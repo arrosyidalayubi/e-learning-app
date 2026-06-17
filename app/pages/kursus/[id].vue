@@ -29,6 +29,17 @@
           <span>•</span>
           <span>SKS: {{ course.sks }}</span>
         </div>
+
+        <div v-if="authUser?.role === 'dosen' || authUser?.role === 'admin'" class="shrink-0">
+          <NuxtLink 
+            :to="`/kursus/${courseId}/rekap-nilai`"
+            class="inline-flex items-center gap-2 px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shadow-sm transform hover:-translate-y-0.5"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            Lihat Rekap Nilai Kuis
+          </NuxtLink>
+        </div>
+
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -92,6 +103,7 @@
 <script setup>
 const route = useRoute()
 const courseId = route.params.id
+const authUser = useCookie('auth_user')
 
 // Fetch Data API
 const { data: response, pending, error } = await useFetch(`/api/kursus/${courseId}`)

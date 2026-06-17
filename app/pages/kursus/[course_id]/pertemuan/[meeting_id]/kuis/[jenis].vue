@@ -182,14 +182,34 @@ onMounted(() => {
 onUnmounted(() => clearInterval(timer))
 
 // Submit Kuis
-const submitKuis = () => {
+const submitKuis = async () => {
   clearInterval(timer)
   
-  // Karena API POST belum dibuat utuh, kita simulasi menyimpan cookie agar centang Peta Pertemuan hijau
-  const cookieName = route.params.jenis === 'pre-test' ? `pretest_done_${route.params.course_id}_${route.params.meeting_id}` : `posttest_done_${route.params.course_id}_${route.params.meeting_id}`
-  const progressCookie = useCookie(cookieName)
-  progressCookie.value = true
-  
-  router.push(`/kursus/${route.params.course_id}/pertemuan/${route.params.meeting_id}`)
+  try {
+    // Tembak API backend untuk kalkulasi nilai asli secara realtime dari D1
+    const res = await $fetch('/api/kuis/submit', {
+      method: 'POST',
+      body: {
+        pertemuan_id: route.params.meeting_id,
+        jenis: route.params.jenis, // 'pre-test' atau 'post-test'
+        jawaban: jawabanUser.value // Objek { soal_id: opsi_id }
+      }
+    })
+
+    alert(`Pengerjaan Berhasil Disimpan!\nSkor Evaluasi: ${res.nilai}/100`)
+
+    // Simpan status progress ke cookie agar tampilan halaman peta pertemuan langsung centang hijau
+    const cookieName = route.params.jenis === 'pre-test' 
+      ? `pretest_done_${route.params.course_id}_${route.params.meeting_id}` 
+      : `posttest_done_${route.params.course_id}_${route.params.meeting_id}`
+    
+    const progressCookie = useCookie(cookieName)
+    progressCookie.value = true
+
+    // Kembalikan mahasiswa ke peta pertemuan
+    router.push(`/kursus/${route.params.course_id}/pertemuan/${route.params.meeting_id}`)
+  } catch (error) {
+    alert(error.data?.statusMessage || 'Gagal mengirimkan jawaban kuis ke server.')
+  }
 }
 </script>
