@@ -22,7 +22,7 @@
         </div>
         <div class="flex items-center gap-3">
           <input type="file" ref="fileInput" accept=".csv" class="hidden" @change="handleCSVUpload">
-          <button @click="$refs.fileInput.click()" class="bg-white text-blue-700 hover:bg-blue-50 px-5 py-2.5 rounded-xl text-sm font-bold shadow transition-transform active:scale-95">
+          <button @click="($refs.fileInput as HTMLInputElement).click()" class="bg-white text-blue-700 hover:bg-blue-50 px-5 py-2.5 rounded-xl text-sm font-bold shadow transition-transform active:scale-95">
             Pilih File CSV
           </button>
         </div>
@@ -60,6 +60,11 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Email Resmi</label>
               <input v-model="form.email" type="email" placeholder="contoh@unpam.ac.id" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Kata Sandi Akun</label>
+              <input v-model="form.password" type="password" placeholder="Kosongkan untuk bawaan: 123456" class="w-full text-sm border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
             </div>
 
             <div v-if="notif.show" :class="notif.isError ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-600 border-green-200'" class="p-3 rounded-lg text-sm font-medium border flex items-start gap-2">
@@ -138,7 +143,7 @@
       </div>
     </div>
 
-    <div v-if="editModal.isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
+    <div v-if="editModal.isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100">
         <h3 class="text-lg font-bold text-gray-900 mb-4">Ubah Data Pengguna</h3>
         <form @submit.prevent="submitEdit" class="space-y-4">
@@ -178,36 +183,40 @@
   </div>
 </template>
 
-<script setup>
-const { data: response, pending, refresh: refreshData } = await useFetch('/api/admin/users')
+<script setup lang="ts">
+// 1. Tambahkan <any> pada useFetch agar TS tahu bentuk datanya fleksibel
+const { data: response, pending, refresh: refreshData } = await useFetch<any>('/api/admin/users')
 const daftarUser = computed(() => response.value?.data || [])
 
 // Filter Kategori Tab
 const activeTab = ref('semua')
 const filteredUsers = computed(() => {
   if (activeTab.value === 'semua') return daftarUser.value
-  return daftarUser.value.filter(u => u.role === activeTab.value)
+  // 2. Tambahkan (u: any) pada filter
+  return daftarUser.value.filter((u: any) => u.role === activeTab.value)
 })
 
 // Fungsi Menghitung Total User di Tiap Kategori Tab
-const countUsersByRole = (role) => {
+const countUsersByRole = (role: string) => {
   if (role === 'semua') return daftarUser.value.length
-  return daftarUser.value.filter(u => u.role === role).length
+  // 3. Tambahkan (u: any) pada filter
+  return daftarUser.value.filter((u: any) => u.role === role).length
 }
 
 // State Form Tambah Manual
 const isSubmitting = ref(false)
-const form = ref({ id: '', nama: '', email: '', role: 'mahasiswa' })
+const form = ref({ id: '', nama: '', email: '', role: 'mahasiswa', password: '' })
 const notif = ref({ show: false, isError: false, message: '' })
 
 const submitUser = async () => {
   isSubmitting.value = true
   try {
-    const res = await $fetch('/api/admin/users', { method: 'POST', body: form.value })
+    // 4. Tambahkan tipe eksplisit res: any
+    const res: any = await $fetch('/api/admin/users', { method: 'POST', body: form.value })
     notif.value = { show: true, isError: false, message: res.message }
-    form.value = { id: '', nama: '', email: '', role: 'mahasiswa' }
+    form.value = { id: '', nama: '', email: '', role: 'mahasiswa', password: '' }
     await refreshData()
-  } catch (error) {
+  } catch (error: any) {
     notif.value = { show: true, isError: true, message: error.data?.statusMessage || 'Gagal menyimpan.' }
   } finally {
     isSubmitting.value = false
@@ -221,7 +230,7 @@ const editModal = ref({
   form: { id: '', nama: '', email: '', role: '', password: '' }
 })
 
-const openEditModal = (user) => {
+const openEditModal = (user: any) => {
   editModal.value.form = { ...user, password: '' }
   editModal.value.isOpen = true
 }
@@ -240,7 +249,7 @@ const submitEdit = async () => {
 }
 
 // Fungsi Hapus User dari DB D1
-const deleteUser = async (userId) => {
+const deleteUser = async (userId: string) => {
   if (confirm('Apakah Anda yakin ingin menghapus akun ini secara permanen? Semua history kuis dan nilai terkait akan ikut terhapus.')) {
     try {
       await $fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
@@ -251,35 +260,40 @@ const deleteUser = async (userId) => {
   }
 }
 
-// PENGEMBANGAN LANJUTAN: Client-side CSV Parser
-const handleCSVUpload = (event) => {
+// Client-side CSV Parser
+const handleCSVUpload = (event: any) => {
   const file = event.target.files[0]
   if (!file) return
 
   const reader = new FileReader()
-  reader.onload = async (e) => {
+  reader.onload = async (e: any) => {
     const text = e.target.result
-    const lines = text.split('\n').map(line => line.split(','))
+    const lines = text.split('\n').map((line: string) => line.split(','))
     
-    // Baris pertama (index 0) biasanya adalah header kolom: id, nama, email, role, password
-    const dataRows = lines.slice(1).filter(row => row.length >= 4 && row[0].trim() !== '')
+    // 5. Tambahkan (row: any) pada filter
+    const dataRows = lines.slice(1).filter((row: any) => row.length >= 4 && row[0].trim() !== '')
 
     if (dataRows.length > 2000) {
-      alert(`Data terlalu besar (${dataRows.length} baris). Untuk data berskala besar (500.000 mahasiswa), mohon gunakan wrangler CLI D1 import via terminal agar tidak memicu memory limit browser.`)
+      alert(`Data terlalu besar (${dataRows.length} baris). Untuk data berskala besar, mohon gunakan wrangler CLI D1 import via terminal.`)
       return
     }
 
-    alert(`Berhasil membaca ${dataRows.length} baris mahasiswa dari CSV. Memulai sinkronisasi bertahap ke Cloudflare D1...`)
+    alert(`Berhasil membaca ${dataRows.length} baris pengguna dari CSV. Memulai sinkronisasi bertahap ke Cloudflare D1...`)
     
-    // Loop untuk mengirim data ke API POST secara sekuensial
     for (const row of dataRows) {
       try {
         await $fetch('/api/admin/users', {
           method: 'POST',
-          body: { id: row[0].trim(), nama: row[1].trim(), email: row[2].trim(), role: row[3].trim().toLowerCase() }
+          body: { 
+            id: row[0].trim(), 
+            nama: row[1].trim(), 
+            email: row[2].trim(), 
+            role: row[3].trim().toLowerCase(),
+            password: row[4] ? row[4].trim() : '123456'
+          }
         })
       } catch (err) {
-        // Abaikan jika ada baris data yang bentrok/duplikat
+        // Abaikan jika duplikat
       }
     }
     
